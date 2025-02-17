@@ -27,7 +27,7 @@ This project was developed with the assistance of ChatGPT and GitHub Copilot.
 
 1. Clone this repository:
     ```sh
-    git clone https://github.com/yourusername/histree-zsh.git
+    git clone https://github.com/fuba/histree-zsh.git
     ```
 
 2. Run the installation script:
