@@ -22,22 +22,38 @@ This project was developed with the assistance of ChatGPT and GitHub Copilot.
   # Check your Go version
   go version
   ```
+- Properly configured GOBIN in your PATH
+  ```sh
+  # Add this to your ~/.zshrc or ~/.bashrc if not already set
+  export GOBIN=$HOME/go/bin
+  export PATH=$GOBIN:$PATH
+  ```
 
 ## Installation
 
 1. Clone this repository:
     ```sh
     git clone https://github.com/fuba/histree-zsh.git
+    cd histree-zsh
     ```
 
-2. Run the installation script:
+2. Make sure your Go environment is properly set up:
     ```sh
+    # Verify your Go environment
+    echo $GOBIN
+    echo $PATH
+    ```
+
+3. Run the installation script:
+    ```sh
+    chmod +x ./install.sh  # Make sure the script is executable
     ./install.sh
     ```
 
 The script will:
 - Create `~/.histree-zsh` directory structure
 - Install histree-core using `go install`
+- Copy the histree-core binary to the correct location
 - Add necessary configurations to your `.zshrc`
 
 After installation:
