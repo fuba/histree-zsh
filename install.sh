@@ -19,27 +19,31 @@ print_error() {
 print_step "Installing histree-zsh..."
 
 # Create target directory structure
-mkdir -p "${TARGET_DIR}/core"
+mkdir -p "${TARGET_DIR}/bin"
 
 # Check if Go is installed
 if ! command -v go &> /dev/null; then
-    print_error "Go is required to build histree-core. Please install Go first."
+    print_error "Go is required to install histree-core. Please install Go first."
 fi
 
-# Install histree-core in the target directory
-print_step "Installing histree-core..."
-if [ -d "${TARGET_DIR}/core/.git" ]; then
-    print_step "Updating existing histree-core..."
-    (cd "${TARGET_DIR}/core" && git pull) || print_error "Failed to update histree-core"
+# Install histree-core using go install (recommended method)
+print_step "Installing histree-core using Go..."
+go install github.com/fuba/histree-core/cmd/histree-core@latest || print_error "Failed to install histree-core"
+
+# Find histree-core binary
+HISTREE_CORE_BIN=""
+if command -v histree-core &> /dev/null; then
+    HISTREE_CORE_BIN=$(command -v histree-core)
+    print_step "Found histree-core binary at: ${HISTREE_CORE_BIN}"
+    
+    # Copy to our bin directory
+    cp "${HISTREE_CORE_BIN}" "${TARGET_DIR}/bin/" || print_error "Failed to copy histree-core binary"
 else
-    print_step "Cloning histree-core..."
-    rm -rf "${TARGET_DIR}/core"  # Remove directory if it exists but is not a git repo
-    git clone https://github.com/fuba/histree-core.git "${TARGET_DIR}/core" || print_error "Failed to clone histree-core"
+    print_error "Could not find histree-core binary after installation. Check your GOPATH and PATH settings."
 fi
 
-# Build histree-core using make
-print_step "Building histree-core..."
-(cd "${TARGET_DIR}/core" && make) || print_error "Failed to build histree-core"
+# Make sure the binary is executable
+chmod +x "${TARGET_DIR}/bin/histree-core" || print_error "Failed to make histree-core executable"
 
 # Copy the zsh plugin
 print_step "Installing zsh plugin..."
@@ -52,7 +56,7 @@ SOURCE_LINE="source ${TARGET_DIR}/histree.zsh"
 # Default configurations
 DB_CONFIG="export HISTREE_DB=\"\${HOME}/.histree.db\""
 LIMIT_CONFIG="export HISTREE_LIMIT=100"
-PATH_CONFIG="export PATH=\"\${HOME}/.histree-zsh/core/bin:\${PATH}\""
+PATH_CONFIG="export PATH=\"\${HOME}/.histree-zsh/bin:\${PATH}\""
 
 if grep -qF "$SOURCE_LINE" "${ZSHRC}"; then
     print_step "Your .zshrc already sources histree-zsh"

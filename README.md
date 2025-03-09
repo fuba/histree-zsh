@@ -17,7 +17,7 @@ This project was developed with the assistance of ChatGPT and GitHub Copilot.
 ## Prerequisites
 
 - Zsh shell
-- Go (for building histree-core)
+- Go 1.18 or later
   ```sh
   # Check your Go version
   go version
@@ -37,14 +37,13 @@ This project was developed with the assistance of ChatGPT and GitHub Copilot.
 
 The script will:
 - Create `~/.histree-zsh` directory structure
-- Clone and build histree-core with `make`
+- Install histree-core using `go install`
 - Add necessary configurations to your `.zshrc`
 
 After installation:
 ```
 ~/.histree-zsh/
 ├── bin/          # Contains the histree-core binary
-├── core/         # Contains the histree-core source code
 └── histree.zsh   # The Zsh plugin script
 ```
 

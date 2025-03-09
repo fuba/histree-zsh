@@ -7,7 +7,7 @@ HISTREE_HOSTNAME="${HOST:=$(hostname)}"
 
 # Check if histree-core binary is available in PATH
 if ! command -v histree-core &> /dev/null; then
-    echo "Error: histree-core binary not found. Please ensure ~/.histree-zsh/core/bin is in your PATH"
+    echo "Error: histree-core binary not found. Please ensure ~/.histree-zsh/bin is in your PATH"
     return 1
 fi
 
