@@ -105,6 +105,26 @@ $ histree -json
 {"command":"vim README.md","directory":"/home/user/project","timestamp":"2024-02-15T15:06:00Z","exit_code":0,"hostname":"host","process_id":1234}
 ```
 
+### Update Directory Paths
+
+If you've moved or renamed directories, you can update all history entries to reflect the change:
+
+```sh
+# Update all history entries containing old path to use new path
+$ histree -u /home/olduser/projects /home/newuser/projects
+
+# Update paths after restructuring your projects
+$ histree -u /projects/website /websites/main
+
+# Shorthand usage
+$ histree -u ~/old_path ~/new_path
+```
+
+This is useful when you:
+- Move a project to a different location
+- Rename directories
+- Switch to a different machine with a different directory structure
+
 ### Command Options
 - `-v`, `--verbose`: Show detailed output including timestamp, directory, and exit code
 - `-json`, `--json`: Output in JSON format with full command context
