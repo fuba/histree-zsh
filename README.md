@@ -12,6 +12,7 @@ This project was developed with the assistance of ChatGPT and GitHub Copilot.
   - Simple format: Just the command
   - Verbose format: With timestamp and directory context
   - JSON format: For programmatic access
+- Path update functionality to handle directory moves or renames
 - Seamless integration with your Zsh workflow
 
 ## Prerequisites
@@ -107,6 +108,11 @@ $ histree -json
 ### Command Options
 - `-v`, `--verbose`: Show detailed output including timestamp, directory, and exit code
 - `-json`, `--json`: Output in JSON format with full command context
+- `-u`, `--update-path`: Update directory paths in history entries
+  ```sh
+  # Example: Update all occurrences of /old/path to /new/path
+  $ histree -u /old/path /new/path
+  ```
 
 ### Troubleshooting
 
