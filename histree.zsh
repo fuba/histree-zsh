@@ -46,9 +46,12 @@ autoload -Uz add-zsh-hook
 add-zsh-hook preexec _histree_preexec
 add-zsh-hook precmd _histree_precmd
 
-# Function to display history
+# Function to display history or update paths
 function histree {
     local format="simple"
+    local action="get"
+    local old_path=""
+    local new_path=""
 
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -60,14 +63,32 @@ function histree {
                 format="json"
                 shift
                 ;;
+            -u|--update-path)
+                action="update-path"
+                shift
+                if [[ $# -ge 2 ]]; then
+                    old_path="$1"
+                    new_path="$2"
+                    shift 2
+                else
+                    echo "Error: -u|--update-path requires two arguments: <old_path> <new_path>"
+                    return 1
+                fi
+                ;;
             *)
                 shift
                 ;;
         esac
     done
 
-    command histree-core -db "$HISTREE_DB" -action get \
-        -limit "$HISTREE_LIMIT" \
-        -dir "$PWD" \
-        -format "$format"
+    if [[ "$action" == "get" ]]; then
+        command histree-core -db "$HISTREE_DB" -action get \
+            -limit "$HISTREE_LIMIT" \
+            -dir "$PWD" \
+            -format "$format"
+    elif [[ "$action" == "update-path" ]]; then
+        command histree-core -db "$HISTREE_DB" -action update-path \
+            -old-path "$old_path" \
+            -new-path "$new_path"
+    fi
 }

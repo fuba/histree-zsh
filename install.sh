@@ -36,8 +36,10 @@ if command -v histree-core &> /dev/null; then
     HISTREE_CORE_BIN=$(command -v histree-core)
     print_step "Found histree-core binary at: ${HISTREE_CORE_BIN}"
     
-    # Copy to our bin directory
-    cp "${HISTREE_CORE_BIN}" "${TARGET_DIR}/bin/" || print_error "Failed to copy histree-core binary"
+    # Copy to our bin directory, but don't error if it's the same file
+    if [ "${HISTREE_CORE_BIN}" != "${TARGET_DIR}/bin/histree-core" ]; then
+        cp "${HISTREE_CORE_BIN}" "${TARGET_DIR}/bin/" || print_error "Failed to copy histree-core binary"
+    fi
 else
     print_error "Could not find histree-core binary after installation. Check your GOPATH and PATH settings."
 fi
