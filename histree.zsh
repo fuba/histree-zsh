@@ -146,6 +146,7 @@ _histree_incremental_search() {
     local idx=0
     local current=""
     local key=""
+    local last_message=""
 
     while true; do
         if [[ "$query" == *"~/"* ]]; then
@@ -192,10 +193,14 @@ _histree_incremental_search() {
             CURSOR=${#BUFFER}
         fi
 
-        zle -M "histree ${direction} search (${source}): ${query}"
-        zle redisplay
+        local message="histree ${direction} search (${source}): ${query}"
+        if [[ "$message" != "$last_message" ]]; then
+            zle -M "$message"
+            last_message="$message"
+        fi
+        zle -R
 
-        IFS= read -rk1 key
+        IFS= read -rs -k1 key
         case "$key" in
             $'\r'|$'\n')
                 zle -M ""
