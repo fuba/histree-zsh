@@ -54,13 +54,21 @@ _histree_incremental_search() {
     local tmpfile
     tmpfile="$(mktemp -t histree-zsh.XXXXXX)" || return 1
 
-    command histree-core -db "$HISTREE_DB" -action get \
-        -limit "$HISTREE_LIMIT" \
-        -dir "$PWD" \
-        -format simple | while IFS= read -r line; do
-            [[ -z "$line" ]] && continue
-            print -r -- ": 0:0;$line"
-        done > "$tmpfile"
+    local -a histree_lines=()
+    local line
+    while IFS= read -r line; do
+        [[ -z "$line" ]] && continue
+        histree_lines+=("$line")
+    done < <(
+        command histree-core -db "$HISTREE_DB" -action get \
+            -limit "$HISTREE_LIMIT" \
+            -dir "$PWD" \
+            -format simple
+    )
+
+    for line in "${(O)histree_lines[@]}"; do
+        print -r -- ": 0:0;$line"
+    done > "$tmpfile"
 
     fc -p
     fc -R "$tmpfile"
@@ -74,13 +82,15 @@ _histree_incremental_search() {
 
 zle -N histree-incremental-search _histree_incremental_search
 
-HISTREE_INCREMENTAL_SEARCH_KEY="${HISTREE_INCREMENTAL_SEARCH_KEY:-^R}"
+HISTREE_INCREMENTAL_SEARCH_KEY="${HISTREE_INCREMENTAL_SEARCH_KEY:-^[[82;6u}"
 HISTREE_INCREMENTAL_SEARCH_KEYMAP="${HISTREE_INCREMENTAL_SEARCH_KEYMAP:-emacs}"
 
 if [[ -n "$HISTREE_INCREMENTAL_SEARCH_KEY" ]]; then
     bindkey -M "$HISTREE_INCREMENTAL_SEARCH_KEYMAP" "$HISTREE_INCREMENTAL_SEARCH_KEY" \
         histree-incremental-search
 fi
+
+bindkey -M isearch '^M' accept-line
 
 # Function to display history or update paths
 function histree {
