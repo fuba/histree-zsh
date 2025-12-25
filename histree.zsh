@@ -92,3 +92,146 @@ function histree {
             -new-path "$new_path"
     fi
 }
+
+_histree_reverse_array() {
+    local -a input_array
+    input_array=("$@")
+    local -a reversed_array=()
+    local i
+    for ((i=${#input_array[@]}; i>=1; i--)); do
+        reversed_array+=("${input_array[i]}")
+    done
+    print -r -- "${reversed_array[@]}"
+}
+
+_histree_collect_histree_entries() {
+    local output
+    output=$(command histree-core -db "$HISTREE_DB" -action get \
+        -limit "$HISTREE_LIMIT" \
+        -dir "$PWD" \
+        -format simple 2>/dev/null)
+    local -a entries
+    entries=("${(@f)${output}}")
+    _histree_reverse_array "${entries[@]}"
+}
+
+_histree_collect_zsh_entries() {
+    fc -l -n 1 2>/dev/null
+}
+
+_histree_incremental_search() {
+    emulate -L zsh
+    setopt no_aliases
+
+    local direction="$1"
+    local original_buffer="$BUFFER"
+    local query=""
+    local -a histree_entries zsh_entries matches pool
+    histree_entries=("${(@f)$(_histree_collect_histree_entries)}")
+    zsh_entries=("${(@f)$(_histree_collect_zsh_entries)}")
+
+    local last_query=""
+    local last_source=""
+    local source="histree"
+    local idx=0
+    local current=""
+    local key=""
+
+    while true; do
+        if [[ "$query" == *"~/"* ]]; then
+            source="zsh-history"
+            pool=("${zsh_entries[@]}")
+        else
+            source="histree"
+            pool=("${histree_entries[@]}")
+        fi
+
+        if [[ "$query" != "$last_query" || "$source" != "$last_source" ]]; then
+            matches=()
+            if [[ -n "$query" ]]; then
+                local entry
+                for entry in "${pool[@]}"; do
+                    if print -r -- "$entry" | command grep -F -q -- "$query"; then
+                        matches+=("$entry")
+                    fi
+                done
+            else
+                matches=("${pool[@]}")
+            fi
+
+            if (( ${#matches[@]} > 0 )); then
+                if [[ "$direction" == "backward" ]]; then
+                    idx=${#matches[@]}
+                else
+                    idx=1
+                fi
+            else
+                idx=0
+            fi
+
+            last_query="$query"
+            last_source="$source"
+        fi
+
+        if (( idx > 0 )); then
+            current="${matches[idx]}"
+            BUFFER="$current"
+            CURSOR=${#BUFFER}
+        else
+            BUFFER="$original_buffer"
+            CURSOR=${#BUFFER}
+        fi
+
+        zle -M "histree ${direction} search (${source}): ${query}"
+        zle redisplay
+
+        IFS= read -rk1 key
+        case "$key" in
+            $'\r'|$'\n')
+                zle -M ""
+                return 0
+                ;;
+            $'\x1b'|$'\x03'|$'\x07')
+                BUFFER="$original_buffer"
+                CURSOR=${#BUFFER}
+                zle -M ""
+                return 0
+                ;;
+            $'\x7f'|$'\b')
+                if [[ -n "$query" ]]; then
+                    query="${query[1,-2]}"
+                fi
+                ;;
+            $'\x12')
+                direction="backward"
+                if (( ${#matches[@]} > 0 && idx > 1 )); then
+                    idx=$((idx - 1))
+                fi
+                ;;
+            $'\x13')
+                direction="forward"
+                if (( ${#matches[@]} > 0 && idx < ${#matches[@]} )); then
+                    idx=$((idx + 1))
+                fi
+                ;;
+            *)
+                if [[ "$key" != $'\t' ]]; then
+                    query+="$key"
+                fi
+                ;;
+        esac
+    done
+}
+
+histree-incremental-search-backward() {
+    _histree_incremental_search backward
+}
+
+histree-incremental-search-forward() {
+    _histree_incremental_search forward
+}
+
+zle -N histree-incremental-search-backward
+zle -N histree-incremental-search-forward
+bindkey '^R' histree-incremental-search-backward
+bindkey '^S' histree-incremental-search-forward
