@@ -198,18 +198,20 @@ _histree_incremental_search() {
             zle -M "$message"
             last_message="$message"
         fi
-        zle -R
+        zle reset-prompt
 
-        IFS= read -rs -k1 key
+        IFS= read -rsk1 key
         case "$key" in
             $'\r'|$'\n')
                 zle -M ""
+                zle reset-prompt
                 return 0
                 ;;
             $'\x1b'|$'\x03'|$'\x07')
                 BUFFER="$original_buffer"
                 CURSOR=${#BUFFER}
                 zle -M ""
+                zle reset-prompt
                 return 0
                 ;;
             $'\x7f'|$'\b')
