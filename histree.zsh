@@ -46,6 +46,42 @@ autoload -Uz add-zsh-hook
 add-zsh-hook preexec _histree_preexec
 add-zsh-hook precmd _histree_precmd
 
+# Widget to run an incremental history search using histree data
+_histree_incremental_search() {
+    emulate -L zsh
+    setopt localoptions no_aliases
+
+    local tmpfile
+    tmpfile="$(mktemp -t histree-zsh.XXXXXX)" || return 1
+
+    command histree-core -db "$HISTREE_DB" -action get \
+        -limit "$HISTREE_LIMIT" \
+        -dir "$PWD" \
+        -format simple | while IFS= read -r line; do
+            [[ -z "$line" ]] && continue
+            print -r -- ": 0:0;$line"
+        done > "$tmpfile"
+
+    fc -p
+    fc -R "$tmpfile"
+    zle history-incremental-search-backward
+    local status=$?
+    fc -P
+
+    rm -f "$tmpfile"
+    return $status
+}
+
+zle -N histree-incremental-search _histree_incremental_search
+
+HISTREE_INCREMENTAL_SEARCH_KEY="${HISTREE_INCREMENTAL_SEARCH_KEY:-^R}"
+HISTREE_INCREMENTAL_SEARCH_KEYMAP="${HISTREE_INCREMENTAL_SEARCH_KEYMAP:-emacs}"
+
+if [[ -n "$HISTREE_INCREMENTAL_SEARCH_KEY" ]]; then
+    bindkey -M "$HISTREE_INCREMENTAL_SEARCH_KEYMAP" "$HISTREE_INCREMENTAL_SEARCH_KEY" \
+        histree-incremental-search
+fi
+
 # Function to display history or update paths
 function histree {
     local format="simple"
