@@ -83,11 +83,16 @@ _histree_incremental_search() {
 zle -N histree-incremental-search _histree_incremental_search
 
 HISTREE_INCREMENTAL_SEARCH_KEY="${HISTREE_INCREMENTAL_SEARCH_KEY:-^[[82;6u}"
-HISTREE_INCREMENTAL_SEARCH_KEYMAP="${HISTREE_INCREMENTAL_SEARCH_KEYMAP:-emacs}"
+HISTREE_INCREMENTAL_SEARCH_KEYMAP="${HISTREE_INCREMENTAL_SEARCH_KEYMAP:-all}"
 
 if [[ -n "$HISTREE_INCREMENTAL_SEARCH_KEY" ]]; then
-    bindkey -M "$HISTREE_INCREMENTAL_SEARCH_KEYMAP" "$HISTREE_INCREMENTAL_SEARCH_KEY" \
-        histree-incremental-search
+    if [[ "$HISTREE_INCREMENTAL_SEARCH_KEYMAP" == "all" ]]; then
+        bindkey -M emacs "$HISTREE_INCREMENTAL_SEARCH_KEY" histree-incremental-search
+        bindkey -M viins "$HISTREE_INCREMENTAL_SEARCH_KEY" histree-incremental-search
+    else
+        bindkey -M "$HISTREE_INCREMENTAL_SEARCH_KEYMAP" \
+            "$HISTREE_INCREMENTAL_SEARCH_KEY" histree-incremental-search
+    fi
 fi
 
 bindkey -M isearch '^M' accept-line
