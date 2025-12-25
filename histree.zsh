@@ -101,7 +101,7 @@ _histree_reverse_array() {
     for ((i=${#input_array[@]}; i>=1; i--)); do
         reversed_array+=("${input_array[i]}")
     done
-    print -r -- "${reversed_array[@]}"
+    print -r -l -- "${reversed_array[@]}"
 }
 
 _histree_collect_histree_entries() {
@@ -111,12 +111,22 @@ _histree_collect_histree_entries() {
         -dir "$PWD" \
         -format simple 2>/dev/null)
     local -a entries
-    entries=("${(@f)${output}}")
+    entries=()
+    local line
+    while IFS= read -r line; do
+        entries+=("$line")
+    done <<< "$output"
     _histree_reverse_array "${entries[@]}"
 }
 
 _histree_collect_zsh_entries() {
-    fc -l -n 1 2>/dev/null
+    local -a entries
+    entries=()
+    local line
+    while IFS= read -r line; do
+        entries+=("$line")
+    done < <(fc -l -n 1 2>/dev/null)
+    print -r -l -- "${entries[@]}"
 }
 
 _histree_incremental_search() {
