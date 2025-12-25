@@ -65,11 +65,11 @@ _histree_incremental_search() {
     fc -p
     fc -R "$tmpfile"
     zle history-incremental-search-backward
-    local status=$?
+    local histree_search_status=$?
     fc -P
 
     rm -f "$tmpfile"
-    return $status
+    return $histree_search_status
 }
 
 zle -N histree-incremental-search _histree_incremental_search
